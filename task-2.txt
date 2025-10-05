@@ -1,4 +1,50 @@
-Öğrenci No:
-AD-SOYAD:
+Öğrenci No:250542023
+AD-SOYAD:Gürkan Özkan
 
 Lütfen seçtiğiniz algoritmaya ait çözümü ve diğer isterleri aşağıya ekleyiniz:
+ALGORITMA Optimal_Sayi_Tahmin_Oyunu()
+    // 1. Aralık belirleme
+    ALT_SINIR ← 1
+    UST_SINIR ← 100
+    DENEME_SAYISI ← 0
+
+    YAZ "1 ile 100 arasında bir sayı tuttum. Tahmin etmeye çalış!"
+    // (veya bilgisayar tahmin edecekse kullanıcı sayıyı seçer.)
+
+    // 2. Oyunun ana döngüsü
+    WHILE TRUE DO
+        TAHMIN ← (ALT_SINIR + UST_SINIR) / 2
+        TAHMIN ← TAMSAYI(TAHMIN)
+        DENEME_SAYISI ← DENEME_SAYISI + 1
+
+        YAZ "Tahminim:", TAHMIN
+        YAZ "Doğru mu, yoksa sayı daha mı büyük/küçük?"
+        YAZ "(cevap olarak: 'dogru', 'buyuk', 'kucuk' yaz)"
+        CEVAP ← GİRİŞ_AL()
+
+        // 3. Koşullu durumlar
+        IF CEVAP = "dogru" THEN
+            YAZ "Harika! Sayıyı", DENEME_SAYISI, "denemede buldum!"
+            BREAK
+
+        ELSE IF CEVAP = "buyuk" THEN
+            // Tahmin ettiğin sayı küçükmüş, aralığın alt sınırını değiştir
+            ALT_SINIR ← TAHMIN + 1
+
+        ELSE IF CEVAP = "kucuk" THEN
+            // Tahmin ettiğin sayı büyükmüş, üst sınırı değiştir
+            UST_SINIR ← TAHMIN - 1
+
+        ELSE
+            YAZ "Geçersiz cevap! Lütfen 'dogru', 'buyuk' veya 'kucuk' yaz."
+        END IF
+
+        // 4. Aralık kontrolü
+        IF ALT_SINIR > UST_SINIR THEN
+            YAZ "Bir hata oldu! Aralık tersine döndü. Oyunu yeniden başlat."
+            BREAK
+        END IF
+    END WHILE
+
+    YAZ "Oyun bitti!"
+SON
