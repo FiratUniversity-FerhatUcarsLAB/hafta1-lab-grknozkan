@@ -1,4 +1,86 @@
-Öğrenci No:
-AD-SOYAD:
+Öğrenci No:250542023
+AD-SOYAD:Gürkan Özkan
 
 Lütfen seçtiğiniz algoritmaya ait çözümü ve diğer isterleri aşağıya ekleyiniz:
+ALGORITMA Mükemmel_Omlet_Yap()
+    // 1. Malzemeleri hazırla
+    MALZEMELER ← ["yumurta", "tuz", "karabiber", "tereyağı veya zeytinyağı", "süt veya krema (opsiyonel)"]
+
+    YAZ "Kaç kişilik omlet yapmak istiyorsun?"
+    KISI_SAYISI ← GİRİŞ_AL()
+
+    // 2. Yumurta miktarını belirle
+    YUMURTA_SAYISI ← KISI_SAYISI * 2
+    YAZ YUMURTA_SAYISI, "adet yumurta kullanılacak."
+
+    // 3. Malzemeleri karıştır
+    KASE ← BOS
+    YAZ "Yumurtaları kaseye kır."
+    FOR i ← 1 TO YUMURTA_SAYISI DO
+        KASE ← KASE + "1 yumurta"
+    END FOR
+
+    YAZ "Bir tutam tuz ve karabiber ekle."
+    IF KISI_SAYISI > 3 THEN
+        YAZ "İsteğe göre biraz süt veya krema ekle (yaklaşık 1 yemek kaşığı)."
+    END IF
+
+    YAZ "Malzemeleri çatal veya çırpıcıyla karıştır."
+    KARISTIR(KASE, 20 saniye)
+
+    // 4. Tavayı hazırla
+    YAZ "Tavayı orta ateşte ısıt."
+    TAVA_SICAKLIK ← ÖLÇ()
+
+    WHILE TAVA_SICAKLIK < 160°C DO
+        BEKLE(5 saniye)
+        TAVA_SICAKLIK ← ÖLÇ()
+    END WHILE
+
+    YAZ "Tavaya tereyağı veya zeytinyağı ekle."
+    ERIT_YAG()
+
+    // 5. Omleti pişir
+    YAZ "Karışımı tavaya dök."
+    DÖK(KASE, TAVA)
+
+    ZAMAN ← 0
+    WHILE OMLET_PIŞMEDI()
+        BEKLE(10 saniye)
+        ZAMAN ← ZAMAN + 10
+
+        IF KENARLAR_PIŞTI_MI() THEN
+            YAZ "Kenarları spatula ile kaldır ve ortayı akıtarak pişir."
+        END IF
+
+        IF ZAMAN ≥ 60 THEN
+            BREAK
+        END IF
+    END WHILE
+
+    // 6. Katlama veya malzeme ekleme aşaması
+    YAZ "Ek malzeme eklemek istiyor musun? (evet/hayır)"
+    CEVAP ← GİRİŞ_AL()
+
+    IF CEVAP = "evet" THEN
+        YAZ "Hangi malzemeleri eklemek istersin? (örneğin peynir, mantar, sucuk)"
+        MALZEME_LISTESI ← GİRİŞ_AL()
+        EKLE(MALZEME_LISTESI, OMLET)
+        YAZ "Omleti ikiye katla."
+    ELSE
+        YAZ "Omleti sade olarak katla."
+    END IF
+
+    // 7. Son kontrol
+    IF ALTI_YANDI_MI() THEN
+        YAZ "Ateş çok yüksekti, bir dahakine daha düşük kullan."
+    ELSE IF OMLET_CIĞ_MI() THEN
+        YAZ "Biraz daha pişirmen gerekiyor."
+    ELSE
+        YAZ "Omlet mükemmel görünüyor!"
+    END IF
+
+    // 8. Servis
+    YAZ "Omleti tabağa al ve sıcak servis et. Afiyet olsun!"
+
+SON
