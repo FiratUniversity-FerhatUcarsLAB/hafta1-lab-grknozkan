@@ -1,4 +1,52 @@
-Öğrenci No:
-AD-SOYAD:
+Öğrenci No:250542023
+AD-SOYAD:Gürkan Özkan
 
 Lütfen seçtiğiniz algoritmaya ait çözümü ve diğer isterleri aşağıya ekleyiniz:
+ALGORITMA Rehberi_Alfabetik_Sirala()
+
+    // 1. Rehber listesini al
+    YAZ "Rehberde kaç kişi var?"
+    N ← GİRİŞ_AL()
+
+    REHBER ← BOS_LISTE
+
+    // 2. Kullanıcıdan isim ve numaraları al
+    FOR i ← 1 TO N DO
+        YAZ i, ". kişinin adını gir:"
+        ISIM ← GİRİŞ_AL()
+
+        YAZ i, ". kişinin telefon numarasını gir:"
+        NUMARA ← GİRİŞ_AL()
+
+        EKLE(REHBER, (ISIM, NUMARA))
+    END FOR
+
+    // 3. Alfabetik sıralama (Bubble Sort yöntemi)
+    YAZ "Rehber alfabetik olarak sıralanıyor..."
+
+    DEGISTI ← TRUE
+    WHILE DEGISTI = TRUE DO
+        DEGISTI ← FALSE
+
+        FOR i ← 1 TO (N - 1) DO
+            // 4. İki ismi karşılaştır
+            IF REHBER[i].ISIM > REHBER[i + 1].ISIM THEN
+                // Yer değiştir
+                GECICI ← REHBER[i]
+                REHBER[i] ← REHBER[i + 1]
+                REHBER[i + 1] ← GECICI
+                DEGISTI ← TRUE
+            END IF
+        END FOR
+    END WHILE
+
+    // 5. Sıralama tamamlandı
+    YAZ "Rehber başarıyla A'dan Z'ye sıralandı!"
+    YAZ "--------------------------"
+
+    // 6. Sıralı rehberi göster
+    FOR i ← 1 TO N DO
+        YAZ REHBER[i].ISIM, " → ", REHBER[i].NUMARA
+    END FOR
+
+SON
