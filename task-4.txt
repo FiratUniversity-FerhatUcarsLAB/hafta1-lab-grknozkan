@@ -1,4 +1,144 @@
-Öğrenci No:
-AD-SOYAD:
+Öğrenci No:250542023
+AD-SOYAD:Gürkan Özkan
 
 Lütfen seçtiğiniz algoritmaya ait çözümü ve diğer isterleri aşağıya ekleyiniz:
+ALGORITMA Lego_Build_Planner(BLUEPRINT, INVENTORY, PREFS)
+
+    // 0. Ön hazırlık / doğrulama
+    IF BLUEPRINT = NULL OR BLUEPRINT.layers IS EMPTY THEN
+        YAZ "Hata: Blueprint boş."
+        RETURN FAILURE
+    END IF
+
+    // 1. Toplam parça ihtiyacını hesapla
+    REQUIRED_PARTS ← AGGREGATE_PARTS_FROM_BLUEPRINT(BLUEPRINT)
+        // REQUIRED_PARTS: map (piece_signature -> adet_required)
+
+    // 2. Envanteri kontrol et, eksikleri tespit et
+    MISSING ← EMPTY_MAP
+    FOR EACH sig IN REQUIRED_PARTS KEYS DO
+        have ← INVENTORY.get_count(sig)
+        need ← REQUIRED_PARTS[sig]
+        IF have < need THEN
+            MISSING[sig] ← need - have
+        END IF
+    END FOR
+
+    // 3. Eksikleri ikame veya çözümle
+    IF MISSING NOT EMPTY THEN
+        SUBSTITUTIONS ← ATTEMPT_SUBSTITUTIONS(MISSING, INVENTORY, PREFS)
+            // Dene: aynı studs ölçülü farklı renk, veya birden çok küçük parça ile büyük parçayı ikame etme
+        STILL_MISSING ← ITEMS_STILL_MISSING_AFTER(SUBSTITUTIONS)
+        IF STILL_MISSING NOT EMPTY THEN
+            IF PREFS.auto_scale_down = TRUE THEN
+                BLUEPRINT ← SCALE_DOWN_BLUEPRINT(BLUEPRINT, STILL_MISSING, PREFS)
+                // blueprint'i parça eksikliğine göre küçült/yeniden ölçeklendir
+            ELSE IF PREFS.auto_order_allowed = TRUE THEN
+                GENERATE_PARTS_ORDER(STILL_MISSING)
+                // Sipariş oluştur ama inşa başlamadan önce sipariş gelmesini bekleme seçeneği kullanıcıya bağlıdır.
+            ELSE
+                YAZ "Eksik parçalar var ve otomatik çözüm kapalı. Yapı kısmen oluşturulacak veya kullanıcı yönlendirilecek."
+            END IF
+        END IF
+    END IF
+
+    // 4. Simetri veya modül tespiti — tekrarı azaltmak için
+    IF BLUEPRINT.symmetry = TRUE THEN
+        MODULE ← EXTRACT_MINIMAL_MODULE(BLUEPRINT)
+        REPEAT_COUNT ← BLUEPRINT.symmetry_repeat_count
+        // Bu durumda modülü bir kere dizayn edip diğer tarafları mirror ile çoğalt
+    END IF
+
+    // 5. Katman katman inşa planı oluştur
+    BUILD_PLAN ← EMPTY_LIST
+    FOR layer_index FROM 1 TO BLUEPRINT.layer_count DO
+        layer ← BLUEPRINT.layers[layer_index]
+
+        // 5a. Katman için en uygun yerleştirme (tiling) planı oluştur
+        tiling_plan ← OPTIMIZE_LAYER_TILING(layer, INVENTORY, PREFS)
+            // greedy: geniş/uzun plakadan başlayıp küçük parçalara doğru doldur
+            // koşul: renk tercihi, studs hizası, bağlantı noktaları
+        APPEND BUILD_PLAN WITH (layer_index, tiling_plan)
+    END FOR
+
+    // 6. Fiziksel inşa aşaması (her katman için)
+    FOR EACH (layer_index, tiling_plan) IN BUILD_PLAN DO
+        YAZ "Katman", layer_index, "inşa ediliyor..."
+
+        // Eğer modüler ve tekrar eden bir yapı varsa, döngü ile modülleri tekrar et
+        IF tiling_plan.is_modular THEN
+            FOR module_instance FROM 1 TO tiling_plan.module_count DO
+                BUILD_MODULE_AT(layer_index, tiling_plan.module, module_instance.position, INVENTORY, PREFS)
+            END FOR
+        ELSE
+            // grid üzerinde hücre hücre veya parça listesi üzerinden yerleştir
+            FOR EACH placement IN tiling_plan.placements DO
+                piece ← placement.piece_signature
+                pos ← placement.position
+                rot ← placement.rotation
+
+                // 6a. Yerleştirme koşulları
+                IF INVENTORY.has(piece) THEN
+                    // Destek kontrolü: eğer alt katmanda destek yoksa -> destek parçası yerleştir
+                    IF NOT SUPPORTED_BY_BELOW(pos, layer_index) THEN
+                        support_needed ← CALCULATE_SUPPORT(pos, piece, layer_index, BLUEPRINT, PREFS)
+                        IF support_needed > 0 THEN
+                            PLACE_SUPPORTS(pos, support_needed, INVENTORY)
+                        END IF
+                    END IF
+
+                    // 6b. Parça yerleştir
+                    PLACE_PIECE(piece, pos, rot)
+                    INVENTORY.decrement(piece, 1)
+                ELSE
+                    // 6c. İkame/çözüm
+                    substitute ← FIND_SUBSTITUTE_FOR(piece, INVENTORY, PREFS)
+                    IF substitute EXISTS THEN
+                        PLACE_PIECE(substitute, pos, rot_adjusted_for_substitute)
+                        INVENTORY.decrement(substitute,1)
+                    ELSE
+                        // Burası kritik: ya parçayı bölerek doldur ya da işaretle
+                        split_plan ← SPLIT_REQUIREMENT_INTO_SMALLER_PIECES(piece, INVENTORY)
+                        IF split_plan EXISTS THEN
+                            FOR EACH sp IN split_plan DO
+                                PLACE_PIECE(sp.piece, sp.position, sp.rotation)
+                                INVENTORY.decrement(sp.piece,1)
+                            END FOR
+                        ELSE
+                            RECORD_UNPLACED(piece, pos)
+                            // Koşul: eğer kritik parçaysa yapı bütünlüğü bozulur -> uyar
+                            IF piece_is_structural(piece) THEN
+                                YAZ "Uyarı: kritik parça eksik. Stabilite riski var."
+                            END IF
+                        END IF
+                    END IF
+                END IF
+
+                // 6d. Her N yerleştirmede stabilite kontrolü (periodik)
+                IF PLACEMENTS_SINCE_LAST_CHECK >= PREFS.stability_check_interval THEN
+                    PERFORM_STABILITY_CHECK(layer_index, CURRENT_REGION)
+                    RESET_PLACEMENTS_COUNTER()
+                END IF
+            END FOR
+        END IF
+
+        // 6e. Katman bittiğinde hizalama ve kilitleme kontrolleri
+        ALIGN_LAYER_WITH_BELOW(layer_index)
+        LOCK_LAYER_CONNECTIONS(layer_index)
+    END FOR
+
+    // 7. Tüm yapı tamamlandıktan sonra nihai stabilite & estetik kontroller
+    final_report ← PERFORM_FINAL_VALIDATION(BLUEPRINT, CURRENT_BUILD, INVENTORY, PREFS)
+        // Kontroller: eksik parçalar listesi, aşırı overhang, renk uyumsuzluğu, simetri sapması
+
+    IF final_report.has_critical_failures THEN
+        YAZ "Yapı kritik hatalar içeriyor: ", final_report.critical_messages
+        RETURN PARTIAL_SUCCESS
+    ELSE
+        YAZ "Yapı başarıyla tamamlandı! Özet:"
+        PRINT_SUMMARY(final_report)
+        RETURN SUCCESS
+    END IF
+
+SON
+
