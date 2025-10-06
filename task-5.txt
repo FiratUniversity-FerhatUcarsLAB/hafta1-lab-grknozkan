@@ -1,4 +1,92 @@
-Öğrenci No:
-AD-SOYAD:
+Öğrenci No:250542023
+AD-SOYAD:Gürkan Özkan
 
 Lütfen seçtiğiniz algoritmaya ait çözümü ve diğer isterleri aşağıya ekleyiniz:
+ALGORITMA Ideal_Cay_Demleme()
+
+    // 1. Girdi al
+    YAZ "Kaç kişilik çay hazırlanacak?"
+    KISI_SAYISI ← GİRİŞ_AL()
+    SU_MIKTARI ← KISI_SAYISI * 250       // kişi başı 250 ml su
+    CAY_MIKTARI ← KISI_SAYISI * 1.5      // kişi başı 1.5 kaşık çay
+
+    YAZ "Hangi tür çay demlenecek? (siyah / yeşil / bitki)"
+    CAY_TURU ← GİRİŞ_AL()
+
+    // 2. Çay türüne göre sıcaklık ve demleme süresi belirle
+    IF CAY_TURU = "siyah" THEN
+        IDEAL_SICAKLIK ← 95
+        DEMLEME_SURESI ← 10
+    ELSE IF CAY_TURU = "yeşil" THEN
+        IDEAL_SICAKLIK ← 80
+        DEMLEME_SURESI ← 3
+    ELSE IF CAY_TURU = "bitki" THEN
+        IDEAL_SICAKLIK ← 90
+        DEMLEME_SURESI ← 7
+    ELSE
+        YAZ "Bilinmeyen çay türü, varsayılan olarak siyah çay seçildi."
+        IDEAL_SICAKLIK ← 95
+        DEMLEME_SURESI ← 10
+    END IF
+
+    // 3. Suyu ısıt
+    SU_SICAKLIGI ← 20        // oda sıcaklığı
+    YAZ "Su ısıtılıyor..."
+
+    WHILE SU_SICAKLIGI < IDEAL_SICAKLIK DO
+        SU_SICAKLIGI ← SU_SICAKLIGI + 5
+        BEKLE(10 saniye)
+        YAZ "Şu an sıcaklık:", SU_SICAKLIGI, "°C"
+    END WHILE
+
+    YAZ "Su ideal sıcaklığa ulaştı:", SU_SICAKLIGI, "°C"
+
+    // 4. Çayı demliğe koy
+    YAZ "Demliğe", CAY_MIKTARI, "kaşık çay konuyor..."
+    DEMLIK ← CAY_MIKTARI
+
+    // 5. Sıcak suyu demliğe dök
+    YAZ "Sıcak su demliğe ekleniyor..."
+    DEMLIK ← DEMLIK + SU_MIKTARI
+
+    // 6. Demleme süreci
+    ZAMAN ← 0
+    YAZ "Demleme başladı. Bekleme süresi:", DEMLEME_SURESI, "dakika"
+
+    WHILE ZAMAN < DEMLEME_SURESI DO
+        BEKLE(1 dakika)
+        ZAMAN ← ZAMAN + 1
+
+        // 6a. Ortada çayı karıştırma (isteğe bağlı)
+        IF ZAMAN = (DEMLEME_SURESI / 2) THEN
+            YAZ "Çay karıştırılıyor, eşit demlenme için..."
+        END IF
+
+        YAZ "Geçen süre:", ZAMAN, "dakika"
+    END WHILE
+
+    // 7. Yoğunluk kontrolü
+    YAZ "Çay demlendi. Yoğunluğunu kontrol etmek ister misin? (evet/hayır)"
+    CEVAP ← GİRİŞ_AL()
+
+    IF CEVAP = "evet" THEN
+        YAZ "Çay çok mu koyu? (evet/hayır)"
+        KONTROL ← GİRİŞ_AL()
+
+        IF KONTROL = "evet" THEN
+            YAZ "Biraz sıcak su ekleniyor..."
+            SU_MIKTARI ← SU_MIKTARI + 50
+        ELSE
+            YAZ "Yoğunluk ideal, işlem tamam."
+        END IF
+    END IF
+
+    // 8. Servis et
+    YAZ "Çay fincanlara dökülüyor..."
+    FOR i ← 1 TO KISI_SAYISI DO
+        YAZ i, ". kişiye çay servis edildi."
+    END FOR
+
+    YAZ "Afiyet olsun! ☕"
+
+SON
